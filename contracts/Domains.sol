@@ -10,6 +10,10 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "hardhat/console.sol";
 import {Base64} from "./libraries/Base64.sol";
 
+error Unauthorized();
+error AlreadyRegistered();
+error InvalidName(string name);
+
 contract Domains is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
@@ -23,6 +27,8 @@ contract Domains is ERC721URIStorage {
     //mapping to store their names
     mapping(string => address) public domains;
     mapping(string => string) public records;
+
+    mapping(uint256 => string) public names;
 
     address payable public owner;
 
@@ -47,10 +53,23 @@ contract Domains is ERC721URIStorage {
         }
     }
 
+    //function to get all the domain names
+
+    function getAllNames() public view returns (string[] memory) {
+        console.log("Getting all names from contract");
+        string[] memory allNames = new string[](_tokenIds.current());
+
+        for (uint256 i = 0; i < _tokenIds.current(); i++) {
+            allNames[i] = names[i];
+            console.log("Name for token %d is %s", i, allNames[i]);
+        }
+        return allNames;
+    }
+
     //register function that adds their names to the map
 
     function register(string calldata name) public payable {
-        require(domains[name] == address(0));
+        if (domains[name] != address(0)) revert AlreadyRegistered();
 
         uint256 _price = price(name);
         require(msg.value >= _price, "Not enough Matic");
@@ -102,6 +121,8 @@ contract Domains is ERC721URIStorage {
         _safeMint(msg.sender, newRecordId);
         _setTokenURI(newRecordId, finalTokenUri);
         domains[name] = msg.sender;
+
+        names[newRecordId] = name;
 
         _tokenIds.increment();
     }
