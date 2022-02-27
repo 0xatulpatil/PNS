@@ -49,7 +49,7 @@ contract Domains is ERC721URIStorage {
         } else if (len == 4) {
             return 3 * 10**17; //0.3 MATIC
         } else {
-            return 1 * 10 * 17; //0.1 MATIC
+            return 1 * 10**17; //0.1 MATIC
         }
     }
 
